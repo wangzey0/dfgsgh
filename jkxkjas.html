@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>图片横向无限滚动 | 速度可调</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 中心容器 - 绝对定位，宽高均为屏幕的80% */
+        .center-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background: #0a0f1a;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* 滚动视口 - 隐藏溢出，实现滚动效果 */
+        .scroll-viewport {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 滚动轨道 - 用于承载图片并实现横向无限滚动 */
+        .rolling-track {
+            display: flex;
+            height: 100%;
+            width: max-content;
+            /* 动画通过JS动态设置时长，默认18秒 */
+            animation: scrollHorizontal 18s linear infinite;
+        }
+
+        /* 单个图片容器 */
+        .image-item {
+            flex-shrink: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 图片样式：高度填满父容器，宽度自适应（保持比例） */
+        .rolling-image {
+            height: 100%;
+            width: auto;
+            max-width: none;
+            object-fit: contain;
+            display: block;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transition: filter 0.2s, transform 0.2s;
+            pointer-events: none; /* 让滑块不受图片影响，但悬停暂停仍然有效 */
+        }
+
+        /* 鼠标悬停时暂停动画，方便查看细节 */
+        .center-container:hover .rolling-track {
+            animation-play-state: paused;
+        }
+
+        /* 可选：悬停时图片微微提亮 */
+        .center-container:hover .rolling-image {
+            filter: brightness(1.02);
+        }
+
+        /* 横向无限滚动关键帧 */
+        @keyframes scrollHorizontal {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                /* 移动距离为轨道宽度的一半（因为复制了一份图片，实现无缝循环） */
+                transform: translateX(-50%);
+            }
+        }
+
+        /* 速度控制滑块容器 - 美观浮动在容器底部中央 */
+        .speed-control {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 60px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 20;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-family: monospace;
+            font-size: 14px;
+            color: white;
+            pointer-events: auto;
+        }
+
+        .speed-control label {
+            letter-spacing: 1px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #a0c0ff, #60a0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .speed-control span {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: bold;
+            min-width: 70px;
+            text-align: center;
+            color: #ffdd88;
+        }
+
+        input[type="range"] {
+            width: 260px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]:focus {
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffaa44;
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 0 8px #ffaa44;
+            transition: 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #ffcc66;
+        }
+
+        /* 添加边缘渐变遮罩，让滚动更平滑（可选） */
+        .center-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(10,15,26,0.8), transparent);
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 28px 0 0 28px;
+        }
+
+        .center-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 100%;
+            background: linear-gradient(to left, rgba(10,15,26,0.8), transparent);
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 0 28px 28px 0;
+        }
+
+        /* 加载提示（可选） */
+        .loading-tip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 5;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 700px) {
+            .speed-control {
+                padding: 8px 16px;
+                gap: 12px;
+                bottom: 12px;
+            }
+            .speed-control label {
+                font-size: 12px;
+            }
+            input[type="range"] {
+                width: 160px;
+            }
+            .center-container::before,
+            .center-container::after {
+                width: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="center-container">
+        <div class="scroll-viewport">
+            <div class="rolling-track" id="rollingTrack">
+                <!-- 图片项会由JS动态生成，以便复制实现无缝滚动，同时支持速度控制 -->
+            </div>
+        </div>
+        <!-- 加载占位文字（图片加载完成后可隐藏） -->
+        <div class="loading-tip" id="loadingTip">⌛ 图片加载中，请稍候...</div>
+    </div>
+
+    <!-- 速度控制滑块 -->
+    <div class="speed-control">
+        <label>⚡ 滚动速度</label>
+        <input type="range" id="speedSlider" min="3" max="30" step="0.5" value="18">
+        <span id="speedValue">18.0s</span>
+        <span style="font-size:12px; opacity:0.7;">(数值越小越快)</span>
+    </div>
+
+    <script>
+        // 图片链接
+        const imageUrl = "https://ts1.tc.mm.bing.net/th/id/R-C.bd36eb94314826fb55af68e0e8e0554d?rik=abELuxhm8A1uag&riu=http%3a%2f%2fdigital-zhangyes.oss-cn-shanghai.aliyuncs.com%2fmainImgs%2f1353.jpg%3fx-oss-process%3dimage%2fresize%2ch_600&ehk=eu65lr6IqojqPFMa%2ftTWVmILDgalEkF4WEB7t1uFV30%3d&risl=&pid=ImgRaw&r=0";
+        
+        const rollingTrack = document.getElementById('rollingTrack');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const loadingTip = document.getElementById('loadingTip');
+
+        // 创建图片元素并添加到轨道，实现无缝滚动（至少两份）
+        function buildTrack() {
+            // 清空轨道
+            rollingTrack.innerHTML = '';
+            
+            // 创建两个相同的图片项（保证无缝循环）
+            // 注意：需要等待图片加载完成才能获取正确的轨道宽度？CSS动画是基于translateX(-50%)，轨道宽度由内容决定，复制两份即可无缝
+            // 我们直接添加两份，图片高度100%自适应，轨道宽度自动计算
+            for (let i = 0; i < 2; i++) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'image-item';
+                const img = document.createElement('img');
+                img.className = 'rolling-image';
+                img.src = imageUrl;
+                img.alt = '滚动图片';
+                // 可选：设置图片加载完成后隐藏加载提示
+                if (i === 0) {
+                    img.onload = () => {
+                        loadingTip.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingTip.style.display = 'none';
+                        }, 500);
+                    };
+                    img.onerror = () => {
+                        loadingTip.innerHTML = '⚠️ 图片加载失败，请检查网络链接';
+                        loadingTip.style.background = 'rgba(200,0,0,0.7)';
+                    };
+                }
+                itemDiv.appendChild(img);
+                rollingTrack.appendChild(itemDiv);
+            }
+        }
+
+        // 更新滚动速度：改变animation-duration
+        function updateSpeed(durationSec) {
+            // 设置动画时长，单位秒
+            rollingTrack.style.animationDuration = durationSec + 's';
+            // 更新显示
+            speedValue.textContent = durationSec.toFixed(1) + 's';
+        }
+
+        // 监听滑块事件
+        speedSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            updateSpeed(val);
+        });
+
+        // 初始化轨道和速度
+        buildTrack();
+        // 默认速度 18s
+        updateSpeed(18);
+
+        // 可选：为了防止图片加载缓慢导致轨道宽度计算异常，但CSS动画依赖轨道宽度，我们已复制两份，轨道宽度由实际图片宽度决定，这是正确的
+        // 另外，如果图片比例导致轨道宽度不足以滚动出效果？不会，因为两份图片总宽度至少是视口宽度的两倍以上才能有滚动空间。
+        // 但为了确保如果图片宽度小于视口宽度时，滚动效果依然可见（会有空白衔接），但用户要求的是“图片较长”，图片本身应该较长，所以没问题。
+        // 为了更好的体验，监听窗口大小变化，重新触发动画的某些属性？不需要，因为动画基于百分比，轨道宽度自适应，无缝滚动正常。
+        
+        // 增加一个小优化：如果图片高度填满容器，宽度自动，但若图片非常宽，滚动会很流畅；若图片宽度较小，滚动可能看起来有空白，但依然符合要求。
+        // 另外，确保图片高度始终填满 .center-container，因为 .image-item 和 .rolling-track 高度100%，图片 height:100% 有效。
+    </script>
+</body>
+</html>
