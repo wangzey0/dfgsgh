@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一元二次方程求解器 | Lab 51</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #e9eef4 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 5px 12px rgba(0,0,0,0.05);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px 28px 40px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #1a2a3a, #0f2c3e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .sub {
+            color: #4a627a;
+            border-left: 4px solid #2c7da0;
+            padding-left: 16px;
+            margin: 10px 0 24px 0;
+            font-weight: 450;
+            font-size: 0.95rem;
+        }
+        .info-panel {
+            background: #f0f4fa;
+            border-radius: 28px;
+            padding: 18px 22px;
+            margin: 20px 0;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.95rem;
+            box-shadow: inset 0 1px 3px #0001, 0 2px 3px #fff8;
+        }
+        .formula {
+            background: #1e2f3c;
+            color: #c9e9ff;
+            padding: 12px 16px;
+            border-radius: 24px;
+            text-align: center;
+            font-weight: 500;
+            margin: 16px 0;
+        }
+        button {
+            background: #2c7da0;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: 60px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 0 #1f5068;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 #1f5068;
+        }
+        button:hover {
+            background: #3a92b5;
+        }
+        .examples {
+            font-size: 0.8rem;
+            background: #ffffffcc;
+            border-radius: 28px;
+            padding: 12px 18px;
+            margin-top: 24px;
+            color: #2c3e4e;
+        }
+        .examples span {
+            font-family: monospace;
+            background: #eef2f7;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 4px 4px 0 0;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: #cfdfed;
+        }
+        .footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5c6f87;
+            margin-top: 24px;
+        }
+        .badge {
+            display: inline-block;
+            background: #1f5068;
+            border-radius: 40px;
+            padding: 4px 12px;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        @media (max-width: 500px) {
+            .card { padding: 20px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <h1>⚡ 二次方程求解器</h1>
+        <div class="badge">Lab 51 · 控制台+弹窗</div>
+    </div>
+    <div class="sub">ax² + bx + c = 0 &nbsp; (a > 0, Δ ≥ 0)</div>
+    
+    <div class="info-panel">
+        📐 求解步骤：<br>
+        1️⃣ 依次输入系数 <strong>a</strong> , <strong>b</strong> , <strong>c</strong> (使用浏览器弹窗)<br>
+        2️⃣ 自动计算判别式 Δ = b² – 4ac<br>
+        3️⃣ 计算 x₁ , x₂  (实数根)<br>
+        4️⃣ ✅ alert 弹窗显示结果 &nbsp;|&nbsp; 📟 console.log 输出结果
+    </div>
+    
+    <div class="formula">
+        x = [ -b ± √(b² - 4ac) ] / (2a)
+    </div>
+    
+    <button id="solveBtn">🚀 开始求解 (弹出三次输入框)</button>
+    
+    <div class="examples">
+        💡 <strong>测试示例 (满足 a>0 , Δ≥0)</strong><br>
+        <span>a=1, b=5, c=6</span> → 根: -2 , -3 <br>
+        <span>a=1, b=0, c=-4</span> → 根: 2 , -2 <br>
+        <span>a=2, b=4, c=2</span> → 根: -1 (重根) <br>
+        <span>a=1, b=-3, c=2</span> → 根: 2 , 1 <br>
+        <span>a=3, b=7, c=2</span> → 根 ≈ -0.333 , -2
+        <hr>
+        ⚠️ <strong>实验中可能遇到的问题：</strong> 用户取消输入 / 非数字 / a≤0 或 Δ<0 (本程序会友好提示)
+    </div>
+    <div class="footer">
+        🔍 按F12打开开发者工具 → Console 面板查看详细日志
+    </div>
+</div>
+
+<script>
+    // 辅助函数：安全地将用户输入转换为数字 (使用parseFloat保留小数，但满足parseInt可选要求)
+    // 同时兼容parseInt风格：如果用户输入整数就用整数解析，但为了根精确，用parseFloat
+    function getNumberFromPrompt(message, defaultValue = null) {
+        let input = prompt(message);
+        // 用户点击取消
+        if (input === null) {
+            return null;
+        }
+        let trimmed = input.trim();
+        if (trimmed === "") {
+            return NaN;
+        }
+        let number = parseFloat(trimmed);
+        if (isNaN(number)) {
+            return NaN;
+        }
+        return number;
+    }
+
+    // 主求解函数 (完全按照题目要求)
+    function solveQuadratic() {
+        console.clear();
+        console.log("========== 二次方程求解器启动 ==========");
+        
+        // 1. 三次prompt获取系数
+        let a = getNumberFromPrompt("请输入系数 a (a > 0，例如 1):");
+        if (a === null) {
+            alert("❌ 用户取消了输入，程序终止。");
+            console.log("用户取消了输入 (a)");
+            return;
+        }
+        if (isNaN(a)) {
+            alert("❌ 系数 a 不是有效数字！请重新运行程序并输入数值。");
+            console.error("无效输入: a =", a);
+            return;
+        }
+        
+        let b = getNumberFromPrompt("请输入系数 b (例如 5):");
+        if (b === null) {
+            alert("❌ 用户取消了输入，程序终止。");
+            console.log("用户取消了输入 (b)");
+            return;
+        }
+        if (isNaN(b)) {
+            alert("❌ 系数 b 不是有效数字！请重新运行程序。");
+            console.error("无效输入: b =", b);
+            return;
+        }
+        
+        let c = getNumberFromPrompt("请输入系数 c (例如 6):");
+        if (c === null) {
+            alert("❌ 用户取消了输入，程序终止。");
+            console.log("用户取消了输入 (c)");
+            return;
+        }
+        if (isNaN(c)) {
+            alert("❌ 系数 c 不是有效数字！请重新运行程序。");
+            console.error("无效输入: c =", c);
+            return;
+        }
+        
+        console.log(`📥 接收系数: a = ${a}, b = ${b}, c = ${c}`);
+        
+        // 题目假设 a > 0，若违反给出提示但仍计算（增强友好性）
+        if (a === 0) {
+            alert("⚠️ 错误: a = 0，这不是二次方程 (a 必须 > 0)。\n请重新运行并输入 a > 0。");
+            console.error("错误: a = 0，二次项系数不能为零。");
+            return;
+        }
+        if (a < 0) {
+            alert(`⚠️ 注意: 当前 a = ${a} (小于0)，但题目假设 a > 0。\n仍然会计算，但抛物线开口向下。继续计算。`);
+            console.warn(`a = ${a} 不满足 a>0 假设，但继续计算。`);
+        }
+        
+        // 3. 计算判别式
+        let delta = b * b - 4 * a * c;
+        console.log(`📐 判别式 Δ = b² - 4ac = ${b}^2 - 4*${a}*${c} = ${delta}`);
+        
+        // 题目假设 delta >= 0，若违反给出错误提示并终止
+        if (delta < 0) {
+            let errorMsg = `Δ = ${delta} < 0，方程无实数根 (复数根不在本程序范围内)。\n请重新运行程序，输入满足 Δ ≥ 0 的系数。`;
+            alert(`❌ 无实数解！\n${errorMsg}`);
+            console.error(`判别式 Δ = ${delta} (负数) 不满足 Δ≥0 假设，无法计算实数根。`);
+            return;
+        }
+        
+        // 4. 计算 x1 和 x2 (严格按题目公式)
+        let sqrtDelta = Math.sqrt(delta);
+        let x1 = (-b + sqrtDelta) / 2 / a;
+        let x2 = (-b - sqrtDelta) / 2 / a;
+        
+        // 处理浮点显示（例如 -0.000000 显示为 0）
+        let formatRoot = (val) => {
+            if (Math.abs(val) < 1e-12) return 0;
+            return parseFloat(val.toFixed(8));
+        };
+        let x1Pretty = formatRoot(x1);
+        let x2Pretty = formatRoot(x2);
+        
+        // 构建结果字符串
+        let resultMessage = `✅ 方程 ${a}x² + ${b}x + ${c} = 0 的解:\n`;
+        if (Math.abs(x1Pretty - x2Pretty) < 1e-10) {
+            resultMessage += `x₁ = x₂ = ${x1Pretty} (重根)`;
+        } else {
+            resultMessage += `x₁ = ${x1Pretty}\nx₂ = ${x2Pretty}`;
+        }
+        
+        // 5. 使用 alert 告诉用户 x1 和 x2
+        alert(resultMessage);
+        
+        // 6. 使用 console.log 输出相同结果
+        console.log("🔔 求解结果 (alert 内容已弹出)");
+        console.log(`📌 方程: ${a}·x² + ${b}·x + ${c} = 0`);
+        console.log(`√Δ = ${sqrtDelta}`);
+        if (Math.abs(x1Pretty - x2Pretty) < 1e-10) {
+            console.log(`🌟 重根: x = ${x1Pretty}`);
+        } else {
+            console.log(`🌱 x1 = ${x1Pretty}   (原始精确值: ${x1})`);
+            console.log(`🌿 x2 = ${x2Pretty}   (原始精确值: ${x2})`);
+        }
+        console.log(`📈 判别式 Δ = ${delta}`);
+        console.log("========== 求解结束 ==========\n");
+        console.table([{ 系数a: a, 系数b: b, 系数c: c, 判别式Delta: delta, x1: x1Pretty, x2: x2Pretty }]);
+    }
+    
+    // 绑定按钮事件
+    const solveBtn = document.getElementById('solveBtn');
+    solveBtn.addEventListener('click', (e) => {
+        solveQuadratic();
+    });
+    
+    // 控制台输出实验分析（对应题目第7点）
+    console.log("%c✨ Lab 51 二次方程求解器已就绪 ✨", "color: #2c7da0; font-size: 16px; font-weight: bold;");
+    console.log("使用说明: 点击「开始求解」按钮 → 依次输入a,b,c → 弹窗显示结果，同时console中记录详细过程。");
+    console.log("⚠️ 实验测试中可能遇到的问题（第七点分析）:");
+    console.log("1️⃣ 用户取消输入: 如果任意一个prompt点击取消，程序会优雅终止并提示，不会崩溃。");
+    console.log("2️⃣ 非数字输入: 输入字母、空字符串或特殊字符时，parseFloat会返回NaN，程序会提示无效并终止，避免错误计算。");
+    console.log("3️⃣ 不符合假设 a>0 或 delta<0: 程序检测到会发出警告/错误弹窗，符合假设情况下运行完美。");
+    console.log("4️⃣ 浮点精度问题: 例如 x1 = -0.0000000001 会修约成 0，避免显示不美观。");
+    console.log("5️⃣ 使用 parseInt 可选性: 但为了支持小数系数 (如a=0.5)，使用parseFloat更合理，完全符合求根公式通用性。");
+    console.log("6️⃣ 多次随机测试: 可重复点击按钮输入不同值，体验完整交互。");
+    console.log("7️⃣ 浏览器兼容性: 现代浏览器均支持prompt/alert/console，完美运行。\n");
+</script>
+</body>
+</html>
